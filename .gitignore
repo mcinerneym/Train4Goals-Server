@@ -2,3 +2,4 @@
 /logs/*
 !/logs/README.md
 /src/db_login.php
+/src/apikey.php

@@ -8,6 +8,10 @@ return function (App $app) {
     $container = $app->getContainer();
 
 	$app->get('/workouts', function ($request, $response, $args) {
+        $apikey = "wrong";
+        if (isset($_GET['apikey']))
+            $apikey = $_GET['apikey'];
+        compareAPIKey($apikey);
         $sth = $this->db->prepare("SELECT * FROM workouts");
         $sth->execute();
         $results = $sth->fetchAll();
@@ -15,6 +19,10 @@ return function (App $app) {
     });
 
     $app->get('/dishes', function ($request, $response, $args) {
+        $apikey = "wrong";
+        if (isset($_GET['apikey']))
+            $apikey = $_GET['apikey'];
+        compareAPIKey($apikey);
         $sth = $this->db->prepare("SELECT * FROM dishes");
         $sth->execute();
         $results = $sth->fetchAll();
@@ -22,13 +30,21 @@ return function (App $app) {
    });
 
    $app->get('/diets', function ($request, $response, $args) {
+        $apikey = "wrong";
+        if (isset($_GET['apikey']))
+            $apikey = $_GET['apikey'];
+        compareAPIKey($apikey);
         $sth = $this->db->prepare("SELECT * FROM diets");
         $sth->execute();
         $results = $sth->fetchAll();
         return $this->response->withJson($results);
     });
 
-    $app->get('/profile/[{id}]', function ($request, $response, $args) {
+    $app->get('/profiles/[{id}]', function ($request, $response, $args) {
+        $apikey = "wrong";
+        if (isset($_GET['apikey']))
+            $apikey = $_GET['apikey'];
+        compareAPIKey($apikey);
         $sth = $this->db->prepare("SELECT * FROM profiles WHERE id=:id");
         $sth->bindParam("id", $args['id']);
         $sth->execute();
@@ -36,7 +52,11 @@ return function (App $app) {
         return $this->response->withJson($results);
    });
 
-    $app->get('/dish/[{id}]', function ($request, $response, $args) {
+    $app->get('/dishes/[{id}]', function ($request, $response, $args) {
+        $apikey = "wrong";
+        if (isset($_GET['apikey']))
+            $apikey = $_GET['apikey'];
+        compareAPIKey($apikey);
         $sth = $this->db->prepare("SELECT * FROM dishes WHERE id=:id");
         $sth->bindParam("id", $args['id']);
         $sth->execute();
@@ -44,7 +64,11 @@ return function (App $app) {
         return $this->response->withJson($results);
     });
 
-    $app->get('/diet/[{id}]', function ($request, $response, $args) {
+    $app->get('/diets/[{id}]', function ($request, $response, $args) {
+        $apikey = "wrong";
+        if (isset($_GET['apikey']))
+            $apikey = $_GET['apikey'];
+        compareAPIKey($apikey);
         $sth = $this->db->prepare("SELECT * FROM diets WHERE id=:id");
         $sth->bindParam("id", $args['id']);
         $sth->execute();
@@ -52,7 +76,11 @@ return function (App $app) {
         return $this->response->withJson($results);
     });
 
-    $app->get('/workout/[{id}]', function ($request, $response, $args) {
+    $app->get('/workouts/[{id}]', function ($request, $response, $args) {
+        $apikey = "wrong";
+        if (isset($_GET['apikey']))
+            $apikey = $_GET['apikey'];
+        compareAPIKey($apikey);
         $sth = $this->db->prepare("SELECT * FROM workouts WHERE id=:id");
         $sth->bindParam("id", $args['id']);
         $sth->execute();
@@ -60,7 +88,11 @@ return function (App $app) {
         return $this->response->withJson($results);
     });
 
-    $app->post('/workout', function ($request, $response) {
+    $app->post('/workouts', function ($request, $response) {
+        $apikey = "wrong";
+        if (isset($_GET['apikey']))
+            $apikey = $_GET['apikey'];
+        compareAPIKey($apikey);
         $input = $request->getParsedBody();
         $sql = "INSERT INTO workouts (name,description,video_link,default_reps,default_sets,is_user_created) 
         VALUES (:name,:description,:video,:reps,:sets,:userMade)";
@@ -76,7 +108,11 @@ return function (App $app) {
         return $this->response->withJson($input);
     });
 
-    $app->post('/dish', function ($request, $response) {
+    $app->post('/dishes', function ($request, $response) {
+        $apikey = "wrong";
+        if (isset($_GET['apikey']))
+            $apikey = $_GET['apikey'];
+        compareAPIKey($apikey);
         $input = $request->getParsedBody();
         $sql = "INSERT INTO dishes (name,description,ingredients,calories,protein,carbs,serving_size,serving_measurement,tags,is_user_created) 
         VALUES (:name,:description,:in,:cal,:pro,:carb,:size,:meas,:tags,:userMade)";
@@ -96,3 +132,29 @@ return function (App $app) {
         return $this->response->withJson($input);
     });
 };
+
+function compareAPIKey($key){
+    $key = sanitizeString(NULL, $key);
+	
+	require_once 'apikey.php';
+    if ($key != $keytocompare){
+        echo "Unauthorized";
+        die();
+    }
+}
+
+//Sanitize the string to prevent errant strings from being inserted into the database
+function sanitizeString($con, $string){
+    if ($con != NULL)
+        return htmlentities(stripString($con, $string));
+    else
+        return htmlentities($string);
+}
+
+//Strip the string of any SQL characters
+function stripString($con, $string){
+    if(get_magic_quotes_gpc()){
+        $string = stripslashes($string);
+    }
+    return $con->real_escape_string($string);
+}
